@@ -702,8 +702,8 @@ log_data = pd.DataFrame({
 })
 
 # Set database context (required for temp operations)
-session.use_database("MY_DATABASE")
-session.use_schema("MY_SCHEMA")
+session.sql('USE DATABASE MY_DATABASE').collect()
+session.sql('USE SCHEMA MY_SCHEMA').collect()
 
 # Write asynchronously (non-blocking)
 df = session.create_dataframe(log_data)
@@ -753,8 +753,8 @@ with demo_col:
                 if st.button("Create Sample Log Table (Async)", key="async_write"):
                     try:
                         # Set database context first
-                        session.use_database(selected_db)
-                        session.use_schema(selected_schema)
+                        session.sql(f'USE DATABASE {selected_db}').collect()
+                        session.sql(f'USE SCHEMA {selected_schema}').collect()
                         
                         # Create sample data
                         log_data = pd.DataFrame({

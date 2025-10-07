@@ -52,8 +52,8 @@ col1, col2 = st.columns([1, 1])
 with col1:
     st.code("""
 # Set database and schema context
-session.use_database('DEMO')
-session.use_schema('PUBLIC')
+session.sql('USE DATABASE DEMO').collect()
+session.sql('USE SCHEMA PUBLIC').collect()
 
 # Create stage for images
 session.sql('''
@@ -69,8 +69,8 @@ with col2:
     
     try:
         # Set context
-        session.use_database('DEMO')
-        session.use_schema('PUBLIC')
+        session.sql('USE DATABASE DEMO').collect()
+        session.sql('USE SCHEMA PUBLIC').collect()
         
         if st.button("Create Stage", key="create_stage_btn"):
             with st.spinner("Creating stage..."):
@@ -171,7 +171,7 @@ with col2:
         default_db_idx = db_names.index(default_db) if default_db in db_names else 0
         
         selected_db = st.selectbox("Database", db_names, index=default_db_idx, key="img_db")
-        session.use_database(selected_db)
+        session.sql(f'USE DATABASE {selected_db}').collect()
         
         # Get schemas
         schemas = session.sql(f"SHOW SCHEMAS IN DATABASE {selected_db}").collect()
@@ -181,7 +181,7 @@ with col2:
         default_schema_idx = schema_names.index(default_schema) if default_schema in schema_names else 0
         
         selected_schema = st.selectbox("Schema", schema_names, index=default_schema_idx, key="img_schema")
-        session.use_schema(selected_schema)
+        session.sql(f'USE SCHEMA {selected_schema}').collect()
         
         # Get stages
         stages = session.sql(f"SHOW STAGES IN SCHEMA {selected_db}.{selected_schema}").collect()
@@ -592,7 +592,7 @@ with col2:
             default_db_idx = db_names.index(default_db) if default_db in db_names else 0
             
             batch_db = st.selectbox("Database", db_names, index=default_db_idx, key="batch_db")
-            session.use_database(batch_db)
+            session.sql(f'USE DATABASE {batch_db}').collect()
             
             schemas = session.sql(f"SHOW SCHEMAS IN DATABASE {batch_db}").collect()
             schema_names = [row['name'] for row in schemas if row['name'] != 'INFORMATION_SCHEMA']
@@ -602,7 +602,7 @@ with col2:
                 default_schema_idx = schema_names.index(default_schema) if default_schema in schema_names else 0
                 
                 batch_schema = st.selectbox("Schema", schema_names, index=default_schema_idx, key="batch_schema")
-                session.use_schema(batch_schema)
+                session.sql(f'USE SCHEMA {batch_schema}').collect()
                 
                 if st.button("Process Sample Reviews", key="batch_btn"):
                     try:
