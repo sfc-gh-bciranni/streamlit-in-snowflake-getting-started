@@ -57,7 +57,8 @@ This interactive guide teaches you Streamlit through live examples. Each lesson 
 4. **🎨 Layouts & Design** - Interactive data exploration
 5. **🏔️ Snowflake Integration** - Leveraging Streamlit-in-Snowflake
 6. **🚀 Advanced Patterns** - Async queries & production techniques
-7. **📖 Quick Reference** - Cheat sheet for quick lookup
+7. **🤖 AI with Cortex** - Image analysis, sentiment, translation & more
+8. **📖 Quick Reference** - Cheat sheet for quick lookup
 
 ### How This Works:
 

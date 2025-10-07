@@ -728,17 +728,27 @@ with demo_col:
     
     # Get available databases and schemas
     try:
+        # Defaults
+        default_db = 'DEMO'
+        default_schema = 'PUBLIC'
+        
         dbs = session.sql("SHOW DATABASES").collect()
         db_names = [row['name'] for row in dbs if row['name'] not in ['SNOWFLAKE', 'SNOWFLAKE_SAMPLE_DATA']]
         
         if db_names:
-            selected_db = st.selectbox("Select Database", db_names, key="async_db")
+            # Set default index
+            default_db_idx = db_names.index(default_db) if default_db in db_names else 0
+            
+            selected_db = st.selectbox("Select Database", db_names, index=default_db_idx, key="async_db")
             
             schemas = session.sql(f"SHOW SCHEMAS IN DATABASE {selected_db}").collect()
             schema_names = [row['name'] for row in schemas if row['name'] != 'INFORMATION_SCHEMA']
             
             if schema_names:
-                selected_schema = st.selectbox("Select Schema", schema_names, key="async_schema")
+                # Set default schema index
+                default_schema_idx = schema_names.index(default_schema) if default_schema in schema_names else 0
+                
+                selected_schema = st.selectbox("Select Schema", schema_names, index=default_schema_idx, key="async_schema")
                 
                 if st.button("Create Sample Log Table (Async)", key="async_write"):
                     try:
@@ -961,5 +971,5 @@ Combine them with caching (Lesson 3) and Snowflake integration (Lesson 5) for po
 
 ### What's Next?
 
-Check out **Lesson 7: Quick Reference** for a handy cheat sheet of all Streamlit commands!
+Check out **Lesson 7: AI with Cortex** to learn how to use Snowflake's powerful AI capabilities, or jump to **Lesson 8: Quick Reference** for a handy cheat sheet of all Streamlit commands!
 """)

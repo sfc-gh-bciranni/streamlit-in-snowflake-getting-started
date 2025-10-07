@@ -265,19 +265,29 @@ with demo_col:
     
     # Query available databases and schemas
     try:
+        # Defaults
+        default_db = 'DEMO'
+        default_schema = 'PUBLIC'
+        
         # Get available databases
         dbs_result = session.sql("SHOW DATABASES").collect()
         available_dbs = [row['name'] for row in dbs_result]
         
         if available_dbs:
-            selected_db = st.selectbox("Select Database", available_dbs, key="create_db")
+            # Set default index
+            default_db_idx = available_dbs.index(default_db) if default_db in available_dbs else 0
+            
+            selected_db = st.selectbox("Select Database", available_dbs, index=default_db_idx, key="create_db")
             
             # Get schemas for selected database
             schemas_result = session.sql(f"SHOW SCHEMAS IN DATABASE {selected_db}").collect()
             available_schemas = [row['name'] for row in schemas_result if row['name'] not in ['INFORMATION_SCHEMA']]
             
             if available_schemas:
-                selected_schema = st.selectbox("Select Schema", available_schemas, key="create_schema")
+                # Set default schema index
+                default_schema_idx = available_schemas.index(default_schema) if default_schema in available_schemas else 0
+                
+                selected_schema = st.selectbox("Select Schema", available_schemas, index=default_schema_idx, key="create_schema")
                 
                 table_name = st.text_input("Table Name", "STREAMLIT_DEMO_TABLE", key="table_name")
                 
@@ -600,10 +610,8 @@ with code_col:
 query = '''
 SELECT 
     table_catalog || '.' || table_schema || '.' || table_name as full_table_name,
-    ROUND(active_bytes / 1024 / 1024 / 1024, 2) as size_gb,
-    row_count
+    ROUND(active_bytes / 1024 / 1024 / 1024, 2) as size_gb
 FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_STORAGE_METRICS
-WHERE deleted IS NULL
 ORDER BY active_bytes DESC
 LIMIT 10
 '''
@@ -621,10 +629,8 @@ with demo_col:
                 query = """
                 SELECT 
                     TABLE_CATALOG || '.' || TABLE_SCHEMA || '.' || TABLE_NAME as FULL_TABLE_NAME,
-                    ROUND(ACTIVE_BYTES / 1024 / 1024 / 1024, 2) as SIZE_GB,
-                    ROW_COUNT
+                    ROUND(ACTIVE_BYTES / 1024 / 1024 / 1024, 2) as SIZE_GB
                 FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_STORAGE_METRICS
-                WHERE DELETED IS NULL
                 ORDER BY ACTIVE_BYTES DESC
                 LIMIT 10
                 """
@@ -686,5 +692,5 @@ The `SNOWFLAKE.ACCOUNT_USAGE` schema is incredibly powerful for monitoring and a
 
 ### What's Next?
 
-In **Lesson 6: Advanced Patterns**, you'll see production-ready techniques for building robust applications!
+In **Lesson 6: Advanced Patterns**, you'll see production-ready techniques for building robust applications, and in **Lesson 7: AI with Cortex**, you'll learn how to leverage AI capabilities directly in Snowflake!
 """)
