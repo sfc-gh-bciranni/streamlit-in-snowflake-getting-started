@@ -701,11 +701,7 @@ log_data = pd.DataFrame({
     'value': [42]
 })
 
-# Set database context (required for temp operations)
-session.sql('USE DATABASE MY_DATABASE').collect()
-session.sql('USE SCHEMA MY_SCHEMA').collect()
-
-# Write asynchronously (non-blocking)
+# Write asynchronously using fully qualified table name
 df = session.create_dataframe(log_data)
 async_job = df.write.save_as_table(
     "MY_DATABASE.MY_SCHEMA.MY_LOG_TABLE",
@@ -752,10 +748,6 @@ with demo_col:
                 
                 if st.button("Create Sample Log Table (Async)", key="async_write"):
                     try:
-                        # Set database context first
-                        session.sql(f'USE DATABASE {selected_db}').collect()
-                        session.sql(f'USE SCHEMA {selected_schema}').collect()
-                        
                         # Create sample data
                         log_data = pd.DataFrame({
                             'LOG_TIMESTAMP': [pd.Timestamp.now()],
@@ -764,6 +756,7 @@ with demo_col:
                             'VALUE': [np.random.randint(1, 100)]
                         })
                         
+                        # Use fully qualified table name
                         table_name = f"{selected_db}.{selected_schema}.STREAMLIT_ASYNC_LOG"
                         
                         with st.spinner("Starting async write..."):

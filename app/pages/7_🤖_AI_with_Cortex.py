@@ -51,38 +51,30 @@ col1, col2 = st.columns([1, 1])
 
 with col1:
     st.code("""
-# Set database and schema context
-session.sql('USE DATABASE DEMO').collect()
-session.sql('USE SCHEMA PUBLIC').collect()
-
-# Create stage for images
+# Create stage for images in DEMO.PUBLIC
+# Use fully qualified path
 session.sql('''
-    CREATE STAGE IF NOT EXISTS CORTEX_STAGE
+    CREATE STAGE IF NOT EXISTS DEMO.PUBLIC.CORTEX_STAGE
     ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE')
 ''').collect()
 
-st.success("Stage created: @CORTEX_STAGE")
+st.success("Stage created: @DEMO.PUBLIC.CORTEX_STAGE")
     """, language="python")
 
 with col2:
     st.markdown("**Create your stage:**")
     
     try:
-        # Set context
-        session.sql('USE DATABASE DEMO').collect()
-        session.sql('USE SCHEMA PUBLIC').collect()
-        
         if st.button("Create Stage", key="create_stage_btn"):
             with st.spinner("Creating stage..."):
                 try:
-                    # Create stage with encryption
+                    # Create stage with encryption using fully qualified path
                     session.sql("""
-                        CREATE STAGE IF NOT EXISTS CORTEX_STAGE
+                        CREATE STAGE IF NOT EXISTS DEMO.PUBLIC.CORTEX_STAGE
                         ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE')
                     """).collect()
                     
-                    st.success("✅ Stage created: `@CORTEX_STAGE`")
-                    st.info("Location: `DEMO.PUBLIC.CORTEX_STAGE`")
+                    st.success("✅ Stage created: `@DEMO.PUBLIC.CORTEX_STAGE`")
                     st.caption("This stage can now be used for image analysis!")
                     
                 except Exception as e:
@@ -133,8 +125,8 @@ if uploaded_file:
     with open(temp_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
     
-    # Upload file to stage
-    stage_location = '@my_stage/uploads'
+    # Upload file to stage using fully qualified path
+    stage_location = '@DEMO.PUBLIC.CORTEX_STAGE/uploads'
     session.file.put(
         temp_path,
         stage_location,
@@ -147,7 +139,7 @@ if uploaded_file:
         SELECT SNOWFLAKE.CORTEX.COMPLETE(
             'claude-3-5-sonnet',
             'Describe this image in detail',
-            TO_FILE('@my_stage', 'uploads/{uploaded_file.name}')
+            TO_FILE('@DEMO.PUBLIC.CORTEX_STAGE', 'uploads/{uploaded_file.name}')
         ) as response
     ''').to_pandas()
     
@@ -171,7 +163,6 @@ with col2:
         default_db_idx = db_names.index(default_db) if default_db in db_names else 0
         
         selected_db = st.selectbox("Database", db_names, index=default_db_idx, key="img_db")
-        session.sql(f'USE DATABASE {selected_db}').collect()
         
         # Get schemas
         schemas = session.sql(f"SHOW SCHEMAS IN DATABASE {selected_db}").collect()
@@ -181,9 +172,8 @@ with col2:
         default_schema_idx = schema_names.index(default_schema) if default_schema in schema_names else 0
         
         selected_schema = st.selectbox("Schema", schema_names, index=default_schema_idx, key="img_schema")
-        session.sql(f'USE SCHEMA {selected_schema}').collect()
         
-        # Get stages
+        # Get stages - use fully qualified path
         stages = session.sql(f"SHOW STAGES IN SCHEMA {selected_db}.{selected_schema}").collect()
         stage_names = [row['name'] for row in stages]
         
@@ -208,8 +198,8 @@ with col2:
                             with open(temp_path, "wb") as f:
                                 f.write(uploaded_file.getbuffer())
                             
-                            # Upload to stage
-                            stage_location = f"@{selected_stage}/cortex_images"
+                            # Upload to stage using fully qualified path
+                            stage_location = f"@{selected_db}.{selected_schema}.{selected_stage}/cortex_images"
                             upload_result = session.file.put(
                                 temp_path, 
                                 stage_location, 
@@ -220,15 +210,15 @@ with col2:
                             st.info(f"✅ File uploaded to stage")
                             
                             # Construct the file path for TO_FILE
-                            # TO_FILE expects stage name and relative path separately
+                            # TO_FILE expects fully qualified stage and relative path separately
                             file_path = f"cortex_images/{uploaded_file.name}"
                             
-                            # Use Cortex COMPLETE with TO_FILE
+                            # Use Cortex COMPLETE with TO_FILE using fully qualified stage path
                             query = f"""
                                 SELECT SNOWFLAKE.CORTEX.COMPLETE(
                                     'claude-3-5-sonnet',
                                     'Describe this image in detail. What objects, people, or scenes do you see?',
-                                    TO_FILE('@{selected_stage}', '{file_path}')
+                                    TO_FILE('@{selected_db}.{selected_schema}.{selected_stage}', '{file_path}')
                                 ) as response
                             """
                             
@@ -592,7 +582,6 @@ with col2:
             default_db_idx = db_names.index(default_db) if default_db in db_names else 0
             
             batch_db = st.selectbox("Database", db_names, index=default_db_idx, key="batch_db")
-            session.sql(f'USE DATABASE {batch_db}').collect()
             
             schemas = session.sql(f"SHOW SCHEMAS IN DATABASE {batch_db}").collect()
             schema_names = [row['name'] for row in schemas if row['name'] != 'INFORMATION_SCHEMA']
@@ -602,7 +591,6 @@ with col2:
                 default_schema_idx = schema_names.index(default_schema) if default_schema in schema_names else 0
                 
                 batch_schema = st.selectbox("Schema", schema_names, index=default_schema_idx, key="batch_schema")
-                session.sql(f'USE SCHEMA {batch_schema}').collect()
                 
                 if st.button("Process Sample Reviews", key="batch_btn"):
                     try:
@@ -619,7 +607,7 @@ with col2:
                                 ]
                             })
                             
-                            # Create table with unique name
+                            # Create table using fully qualified path
                             table_name = f"{batch_db}.{batch_schema}.CORTEX_REVIEWS_DEMO"
                             session.create_dataframe(sample_reviews).write.save_as_table(
                                 table_name,
