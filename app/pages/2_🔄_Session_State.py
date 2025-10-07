@@ -9,7 +9,7 @@ from datetime import datetime
 
 st.set_page_config(page_title="Session State", page_icon="🔄", layout="wide")
 
-st.title("🔄 Lesson 2: Session State")
+st.title("🔄 Lesson 2: The Session State")
 
 # =============================================================================
 # SECTION 1: Why Session State?
